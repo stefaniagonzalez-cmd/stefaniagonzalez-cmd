@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gato Disco Bailarín 🐱🕺</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js para sintetizar música y sonidos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .font-fredoka {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Luces de Discoteca de Fondo */
+        .disco-bg {
+            background: radial-gradient(circle at 50% 50%, #1a0b2e, #090314);
+            transition: background 0.5s ease;
+        }
+
+        .light-beam {
+            position: absolute;
+            top: 0;
+            width: 200px;
+            height: 100vh;
+            opacity: 0.35;
+            filter: blur(40px);
+            transform-origin: top center;
+            animation: swing 4s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes swing {
+            0% { transform: rotate(-35deg) scaleY(1.2); }
+            100% { transform: rotate(35deg) scaleY(1.2); }
+        }
+
+        /* Animaciones del Gato Bailarín */
+        .cat-container {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom center;
+        }
+
+        /* Pasos de baile mediante CSS */
+        .dance-salsa {
+            animation: salsaDance calc(1s / var(--bpm-factor)) infinite alternate ease-in-out;
+        }
+        .dance-breakdance {
+            animation: breakDance calc(0.8s / var(--bpm-factor)) infinite linear;
+        }
+        .dance-techno {
+            animation: technoBounce calc(0.4s / var(--bpm-factor)) infinite alternate ease-out;
+        }
+
+        @keyframes salsaDance {
+            0% { transform: translateY(0) rotate(-10deg) scaleX(1); }
+            50% { transform: translateY(-25px) rotate(0deg) scaleX(1.05); }
+            100% { transform: translateY(0) rotate(10deg) scaleX(1); }
+        }
+
+        @keyframes breakDance {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(0.9) translateY(-10px); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            75% { transform: rotate(270deg) scale(0.9) translateY(10px); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        @keyframes technoBounce {
+            0% { transform: translateY(0) scale(1, 1); }
+            50% { transform: translateY(-35px) scale(0.95, 1.1) rotate(-5deg); }
+            100% { transform: translateY(0) scale(1.1, 0.9) rotate(5deg); }
+        }
+
+        /* Brillo de ojos */
+        .eye-glow {
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+        }
+
+        /* Pista de Baile Iluminada */
+        .dance-floor {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            width: 280px;
+            height: 80px;
+            transform: perspective(300px) rotateX(60deg);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .floor-tile {
+            border-radius: 4px;
+            transition: background-color 0.1s ease;
+        }
+    </style>
+</head>
+<body class="disco-bg min-h-screen text-white flex flex-col justify-between items-center relative overflow-hidden select-none">
+
+    <!-- Focos de Luz de Fiesta -->
+    <div id="light1" class="light-beam bg-pink-500 left-1/4" style="animation-delay: 0s;"></div>
+    <div id="light2" class="light-beam bg-purple-500 left-2/4" style="animation-delay: -1.3s;"></div>
+    <div id="light3" class="light-beam bg-cyan-400 left-3/4" style="animation-delay: -2.6s;"></div>
+
+    <!-- Encabezado / Marcador -->
+    <header class="w-full max-w-4xl p-4 flex flex-wrap justify-between items-center z-10 gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-yellow-400 flex items-center justify-center text-2xl shadow-lg shadow-pink-500/30">
+                🐱
+            </div>
+            <div>
+                <h1 class="font-fredoka text-2xl md:text-3xl tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-cyan-300">
+                    GATO DISCO 3000
+                </h1>
+                <p class="text-xs text-purple-200/70">¡Haz que el michi rompa la pista!</p>
+            </div>
+        </div>
+
+        <!-- Contadores de Pasos y Ritmo -->
+        <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
+            <div class="text-center px-2">
+                <span class="block text-xs uppercase tracking-wider text-purple-300 font-semibold">Pasos</span>
+                <span id="stepCounter" class="font-fredoka text-xl md:text-2xl text-yellow-300">0</span>
+            </div>
+            <div class="w-[1px] h-8 bg-white/20"></div>
+            <div class="text-center px-2">
+                <span class="block text-xs uppercase tracking-wider text-purple-300 font-semibold">Ritmo</span>
+                <span id="bpmDisplay" class="font-fredoka text-xl md:text-2xl text-cyan-300">120 BPM</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Zona Central: Gato Bailando -->
+    <main class="relative flex-1 flex flex-col items-center justify-center w-full z-10 my-4">
+        
+        <!-- Contenedor del Gato en SVG -->
+        <div id="catWrapper" class="cat-container dance-salsa cursor-pointer relative" style="--bpm-factor: 1;" onclick="boostCat()">
+            
+            <!-- Burbuja de Diálogo interactiva -->
+            <div id="catSpeech" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-gray-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg opacity-0 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+                ¡Miau! 🎶
+            </div>
+
+            <!-- Gato SVG Ilustrado -->
+            <svg id="catSvg" class="w-64 h-64 md:w-80 md:h-80 filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)]" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Orejas -->
+                <polygon points="75,90 40,30 105,65" fill="#3B82F6" id="earLeft"/>
+                <polygon points="82,82 52,38 102,64" fill="#F472B6" />
+                <polygon points="225,90 260,30 195,65" fill="#3B82F6" id="earRight"/>
+                <polygon points="218,82 248,38 198,64" fill="#F472B6" />
+
+                <!-- Cabeza -->
+                <ellipse cx="150" cy="115" rx="85" ry="65" fill="#60A5FA" />
+
+                <!-- Gafas de Sol de Discoteca -->
+                <g id="glasses">
+                    <rect x="80" y="90" width="60" height="40" rx="10" fill="#111827" stroke="#EC4899" stroke-width="4"/>
+                    <rect x="160" y="90" width="60" height="40" rx="10" fill="#111827" stroke="#EC4899" stroke-width="4"/>
+                    <line x1="140" y1="105" x2="160" y2="105" stroke="#EC4899" stroke-width="4"/>
+                    <!-- Reflejos en las gafas -->
+                    <path d="M85 95 L110 95 L90 125 Z" fill="rgba(255,255,255,0.3)"/>
+                    <path d="M165 95 L190 95 L170 125 Z" fill="rgba(255,255,255,0.3)"/>
+                </g>
+
+                <!-- Nariz y Boca -->
+                <polygon points="143,128 157,128 150,136" fill="#F472B6" />
+                <path d="M140 140 Q150 148 150 140 Q150 148 160 140" stroke="#1E3A8A" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+                <!-- Bigotes -->
+                <line x1="50" y1="120" x2="90" y2="125" stroke="#1E3A8A" stroke-width="3" stroke-linecap="round"/>
+                <line x1="45" y1="135" x2="88" y2="133" stroke="#1E3A8A" stroke-width="3" stroke-linecap="round"/>
+                <line x1="250" y1="120" x2="210" y2="125" stroke="#1E3A8A" stroke-width="3" stroke-linecap="round"/>
+                <line x1="255" y1="135" x2="212" y2="133" stroke="#1E3A8A" stroke-width="3" stroke-linecap="round"/>
+
+                <!-- Cuerpo -->
+                <ellipse cx="150" cy="210" rx="65" ry="60" fill="#3B82F6" />
+                <!-- Barriguita -->
+                <ellipse cx="150" cy="215" rx="42" ry="40" fill="#93C5FD" />
+
+                <!-- Collar Disco -->
+                <rect x="110" y="170" width="80" height="12" rx="6" fill="#F59E0B" />
+                <circle cx="150" cy="188" r="12" fill="#FBBF24" stroke="#FFF" stroke-width="2"/>
+
+                <!-- Brazos / Patas Delanteras -->
+                <g id="leftArm">
+                    <path d="M90 180 Q60 160 50 130" stroke="#3B82F6" stroke-width="24" stroke-linecap="round" fill="none"/>
+                    <circle cx="50" cy="130" r="14" fill="#93C5FD"/>
+                </g>
+                <g id="rightArm">
+                    <path d="M210 180 Q240 160 250 130" stroke="#3B82F6" stroke-width="24" stroke-linecap="round" fill="none"/>
+                    <circle cx="250" cy="130" r="14" fill="#93C5FD"/>
+                </g>
+
+                <!-- Patas Traseras -->
+                <ellipse cx="105" cy="265" rx="20" ry="12" fill="#1D4ED8" />
+                <ellipse cx="195" cy="265" rx="20" ry="12" fill="#1D4ED8" />
+            </svg>
+        </div>
+
+        <!-- Pista de Baile de Neón -->
+        <div class="dance-floor mt-[-20px]" id="danceFloor">
+            <!-- 16 baldosas generadas con JS -->
+        </div>
+    </main>
+
+    <!-- Barra de Controles e Interacción -->
+    <footer class="w-full max-w-4xl p-4 z-10">
+        <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col md:flex-row gap-6 items-center justify-between">
+            
+            <!-- Reproducción de Audio y Estilos -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-center">
+                <button id="playBtn" onclick="toggleMusic()" class="w-14 h-14 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 flex items-center justify-center text-xl text-white shadow-lg shadow-pink-500/40 transform active:scale-95 transition">
+                    <i class="fa-solid fa-play" id="playIcon"></i>
+                </button>
+
+                <div class="flex flex-col">
+                    <span class="text-xs text-gray-300 font-semibold uppercase tracking-wider">Estilo de Música</span>
+                    <select id="genreSelect" onchange="changeGenre()" class="bg-black/40 border border-white/20 text-white rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:border-pink-400">
+                        <option value="disco">🕺 Disco Funky</option>
+                        <option value="techno">⚡ Techno Cyber</option>
+                        <option value="salsa">💃 Salsa Tropical</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Selector de Estilo de Baile -->
+            <div class="flex flex-col items-center md:items-start w-full md:w-auto">
+                <span class="text-xs text-gray-300 font-semibold uppercase tracking-wider mb-2">Paso de Baile</span>
+                <div class="flex bg-black/40 p-1 rounded-xl border border-white/10 gap-1">
+                    <button onclick="setDanceStyle('salsa')" id="btn-salsa" class="dance-btn px-3 py-1.5 rounded-lg text-xs font-bold transition bg-pink-500 text-white">Salsa</button>
+                    <button onclick="setDanceStyle('techno')" id="btn-techno" class="dance-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-gray-300 hover:text-white">Techno</button>
+                    <button onclick="setDanceStyle('breakdance')" id="btn-breakdance" class="dance-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-gray-300 hover:text-white">Breakdance</button>
+                </div>
+            </div>
+
+            <!-- Control de Velocidad (BPM) -->
+            <div class="flex flex-col w-full md:w-48">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-gray-300 font-semibold uppercase tracking-wider">Velocidad</span>
+                    <span id="speedVal" class="text-xs font-bold text-cyan-300">1.0x</span>
+                </div>
+                <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSpeed(this.value)" class="w-full accent-pink-500 cursor-pointer h-2 bg-black/40 rounded-lg appearance-none">
+            </div>
+
+            <!-- Botón de Fiesta Extra / Confeti -->
+            <button onclick="triggerPartyEffect()" class="w-full md:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 font-bold text-sm text-white shadow-lg shadow-cyan-500/30 active:scale-95 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>¡Efecto Fiesta!</span>
+            </button>
+
+        </div>
+    </footer>
+
+    <!-- Script Principal -->
+    <script>
+        // Estado Global
+        let isPlaying = false;
+        let bpm = 120;
+        let stepCount = 0;
+        let currentGenre = 'disco';
+        let currentDance = 'salsa';
+        let audioLoop = null;
+        let synth = null;
+        let bassSynth = null;
+
+        // Elementos DOM
+        const catWrapper = document.getElementById('catWrapper');
+        const catSpeech = document.getElementById('catSpeech');
+        const playIcon = document.getElementById('playIcon');
+        const stepCounter = document.getElementById('stepCounter');
+        const bpmDisplay = document.getElementById('bpmDisplay');
+        const danceFloor = document.getElementById('danceFloor');
+
+        // Frases para el gato
+        const catPhrases = [
+            "¡Siente el ritmo! 🐾", 
+            "¡Miau party! 🎉", 
+            "¡No pare el baile! 🕺", 
+            "¡Dame más BASS! 🔊", 
+            "¡Auuu miau! ✨"
+        ];
+
+        // Inicializar Pista de Baile
+        for (let i = 0; i < 16; i++) {
+            const tile = document.createElement('div');
+            tile.className = 'floor-tile bg-purple-900/40 border border-white/5';
+            danceFloor.appendChild(tile);
+        }
+
+        // Sintetizadores de Tone.js para música integrada
+        function initAudio() {
+            if (synth) return;
+
+            synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.4 }
+            }).toDestination();
+            synth.volume.value = -6;
+
+            bassSynth = new Tone.MembraneSynth({
+                pitchDecay: 0.05,
+                octaves: 4,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 0.4 }
+            }).toDestination();
+            bassSynth.volume.value = -2;
+
+            // Bucle principal de ritmo
+            let step = 0;
+            audioLoop = new Tone.Loop((time) => {
+                // Actualizar contador y animación de pista
+                Tone.Draw.schedule(() => {
+                    animateStep(step);
+                }, time);
+
+                // Patrones de notas según género
+                playMusicPattern(step, time);
+
+                step = (step + 1) % 16;
+            }, "16n");
+
+            Tone.Transport.bpm.value = bpm;
+        }
+
+        // Reproducir patrón según género
+        function playMusicPattern(step, time) {
+            if (currentGenre === 'disco') {
+                if (step % 4 === 0) bassSynth.triggerAttackRelease("C1", "8n", time);
+                if (step % 4 === 2) bassSynth.triggerAttackRelease("G1", "8n", time);
+                if (step % 2 === 1) synth.triggerAttackRelease(["E4", "G4", "B4"], "16n", time);
+            } 
+            else if (currentGenre === 'techno') {
+                if (step % 4 === 0) bassSynth.triggerAttackRelease("C1", "8n", time);
+                if (step % 2 === 0) synth.triggerAttackRelease("C3", "16n", time);
+                if (step === 12) synth.triggerAttackRelease(["G4", "A#4"], "8n", time);
+            } 
+            else if (currentGenre === 'salsa') {
+                if (step === 0 || step === 6 || step === 10) bassSynth.triggerAttackRelease("G1", "8n", time);
+                if (step % 4 === 0 || step === 3 || step === 7) {
+                    synth.triggerAttackRelease(["C4", "E4", "G4"], "8n", time);
+                }
+            }
+        }
+
+        // Animar en cada paso del compás
+        function animateStep(step) {
+            stepCount++;
+            stepCounter.textContent = stepCount;
+
+            // Destello en la pista de baile
+            const tiles = danceFloor.children;
+            const randomTile = tiles[Math.floor(Math.random() * tiles.length)];
+            const colors = ['#EC4899', '#8B5CF6', '#06B6D4', '#10B981', '#F59E0B'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+            randomTile.style.backgroundColor = randomColor;
+            randomTile.style.boxShadow = `0 0 12px ${randomColor}`;
+
+            setTimeout(() => {
+                randomTile.style.backgroundColor = 'rgba(88, 28, 135, 0.4)';
+                randomTile.style.boxShadow = 'none';
+            }, 200);
+
+            // Cambiar color de luces de fondo esporádicamente
+            if (step % 4 === 0) {
+                document.getElementById('light1').style.backgroundColor = colors[(step) % colors.length];
+                document.getElementById('light2').style.backgroundColor = colors[(step + 2) % colors.length];
+            }
+        }
+
+        // Iniciar / Pausar Música
+        async function toggleMusic() {
+            await Tone.start();
+            initAudio();
+
+            if (isPlaying) {
+                Tone.Transport.stop();
+                audioLoop.stop();
+                isPlaying = false;
+                playIcon.className = "fa-solid fa-play";
+            } else {
+                Tone.Transport.start();
+                audioLoop.start(0);
+                isPlaying = true;
+                playIcon.className = "fa-solid fa-pause";
+            }
+        }
+
+        // Cambiar velocidad
+        function updateSpeed(val) {
+            document.getElementById('speedVal').textContent = parseFloat(val).toFixed(1) + 'x';
+            bpm = Math.round(120 * val);
+            bpmDisplay.textContent = bpm + ' BPM';
+
+            // Ajustar factor CSS para velocidad de animación del gato
+            catWrapper.style.setProperty('--bpm-factor', val);
+
+            if (Tone.Transport) {
+                Tone.Transport.bpm.value = bpm;
+            }
+        }
+
+        // Cambiar estilo de baile
+        function setDanceStyle(style) {
+            currentDance = style;
+            catWrapper.className = `cat-container dance-${style} cursor-pointer relative`;
+
+            // Actualizar botones UI
+            document.querySelectorAll('.dance-btn').forEach(btn => {
+                btn.className = "dance-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-gray-300 hover:text-white";
+            });
+            const activeBtn = document.getElementById(`btn-${style}`);
+            activeBtn.className = "dance-btn px-3 py-1.5 rounded-lg text-xs font-bold transition bg-pink-500 text-white";
+        }
+
+        // Cambiar Género
+        function changeGenre() {
+            currentGenre = document.getElementById('genreSelect').value;
+            // Cambiar estilo de baile automáticamente según el género para mejor combinación
+            if (currentGenre === 'techno') setDanceStyle('techno');
+            else if (currentGenre === 'salsa') setDanceStyle('salsa');
+            else setDanceStyle('salsa');
+        }
+
+        // Interacción al hacer clic directamente en el gato
+        function boostCat() {
+            // Animación de salto
+            catWrapper.style.transform = 'scale(1.2) translateY(-20px)';
+            setTimeout(() => {
+                catWrapper.style.transform = 'none';
+            }, 200);
+
+            // Mostrar frase
+            const randomPhrase = catPhrases[Math.floor(Math.random() * catPhrases.length)];
+            catSpeech.textContent = randomPhrase;
+            catSpeech.style.opacity = '1';
+            
+            setTimeout(() => {
+                catSpeech.style.opacity = '0';
+            }, 1500);
+
+            // Sonido Miau sintetizado
+            if (synth) {
+                synth.triggerAttackRelease(["E5", "G5", "B5"], "16n");
+            }
+        }
+
+        // Efecto Fiesta con Confeti y Luces
+        function triggerPartyEffect() {
+            // Lluvia de confeti
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            // Reacción del gato
+            boostCat();
+        }
+    </script>
+</body>
+</html>
